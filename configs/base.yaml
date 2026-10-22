@@ -1,0 +1,16 @@
+# Shared settings. Variant files only override what differs.
+# No secrets here (tokens live in Kaggle Secrets).
+model: Qwen/Qwen3-0.6B
+variant: fp16
+server:
+  dtype: half              # T4 has no bf16
+  max_model_len: 2048
+  gpu_memory_utilization: 0.90
+  max_num_seqs: 64
+  port: 8000
+workload:
+  seed: 42
+  num_requests: 200
+  prompt_tokens: [100, 900]
+  output_tokens: [100, 900]
+  online_rates: [1, 2, 4, 8]   # replace after measuring fp16 offline throughput

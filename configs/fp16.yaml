@@ -1,0 +1,3 @@
+extends: base.yaml
+variant: fp16
+model: Qwen/Qwen3-0.6B

@@ -1,0 +1,3 @@
+extends: base.yaml
+variant: int4
+model: YOUR-HF-USER/qwen3-0.6b-w4a16  # private HF repo, fill in after Week 2 Day 2
