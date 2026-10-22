@@ -1,0 +1,72 @@
+{
+  "schema_version": "1.0",
+  "run_id": "2026-10-22_fp16_hf_baseline",
+  "run_type": "baseline",
+  "variant": "fp16",
+  "backend": "hf",
+  "status": "ok",
+  "workload": null,
+  "concurrency": null,
+  "throughput": {
+    "output_tokens_per_s": 24.976041863551984,
+    "requests_per_s": 0.09756266352949994
+  },
+  "ttft_ms": null,
+  "itl_ms": null,
+  "e2e_ms": null,
+  "peak_gpu_memory_mb": 1200.6025390625,
+  "memory_measure_method": "torch.cuda.max_memory_allocated, reported in MiB",
+  "accuracy": {
+    "wikitext_word_perplexity": null,
+    "task_name": null,
+    "task_acc": null
+  },
+  "environment": {
+    "git_commit": "d3837ea4ddd60eb21e7a4ccdb8d8f49b0fe22ff2",
+    "gpu_name": "Tesla T4",
+    "attention_backend": "sdpa",
+    "versions": {
+      "torch": "2.11.0+cu128",
+      "transformers": "5.16.1"
+    }
+  },
+  "config": {
+    "model": "Qwen/Qwen3-0.6B",
+    "variant": "fp16",
+    "server": {
+      "dtype": "half",
+      "max_model_len": 2048,
+      "gpu_memory_utilization": 0.9,
+      "max_num_seqs": 64,
+      "port": 8000
+    },
+    "workload": {
+      "seed": 42,
+      "num_requests": 200,
+      "prompt_tokens": [
+        100,
+        900
+      ],
+      "output_tokens": [
+        100,
+        900
+      ],
+      "online_rates": [
+        1,
+        2,
+        4,
+        8
+      ]
+    }
+  },
+  "config_sha256": "5812d5b8453e6fd28eed414cec4490225a21a5a94b51e2dcfcb2484754f4e603",
+  "extra": {
+    "weights_mib": 1136.8896484375,
+    "kv_bytes_per_token": 114688,
+    "prompt_tokens": 128,
+    "new_tokens": 256,
+    "repeats": 5,
+    "ttft_ms_median": 46.01811000009093,
+    "decode_tokens_per_s": 24.99067858469106
+  }
+}
