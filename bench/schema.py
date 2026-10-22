@@ -74,6 +74,7 @@ class RunResult(Strict):
     environment: Environment
     config: dict            # fully resolved config
     config_sha256: str
+    extra: dict = {}        # free-form run-specific numbers (e.g. weights_mb for the HF baseline)
 
     @model_validator(mode="after")
     def benchmark_needs_latency(self):
