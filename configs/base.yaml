@@ -14,3 +14,37 @@ workload:
   prompt_tokens: [100, 900]
   output_tokens: [100, 900]
   online_rates: [1, 2, 4, 8]   # replace after measuring fp16 offline throughput
+
+evaluation:
+  backend: hf                  # Week 2 Day 4: switch to vllm for all three variants
+  device: cuda
+  dtype: float16               # HF / lm-eval name (server.dtype "half" is vLLM's name)
+  tasks:
+    - wikitext
+    - arc_easy
+    - arc_challenge
+  num_fewshot: 0
+  limit: null                  # Full test sets, no limit
+  batch_size: 8                # Fixed, never "auto". Keep identical for all variants.
+  max_length: 2048             # Perplexity depends on this window; same as max_model_len
+  log_samples: true            # Needed for the per-sample records
+ 
+  seeds:                       # Single source for all seeds
+    python: 42
+    numpy: 42
+    torch: 42
+    fewshot: 42
+ 
+  report_stderr: true          # Also record the standard error of each metric
+ 
+  metrics:
+    wikitext:
+      headline: word_perplexity
+      report: [word_perplexity]
+    arc_easy:
+      headline: acc_norm
+      report: [acc_norm, acc]
+    arc_challenge:
+      headline: acc_norm
+      report: [acc_norm, acc]
+ 

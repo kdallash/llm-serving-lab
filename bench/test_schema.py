@@ -61,7 +61,7 @@ def test_eval_run_without_latency_ok():
     for k in ("workload", "concurrency", "throughput", "ttft_ms", "itl_ms", "e2e_ms"):
         del ev[k]
     ev["run_type"] = "eval"
-    ev["accuracy"] = {"task_name": "x", "task_acc": 0.5}
+    ev["accuracy"] = {"task_metrics": {"arc_easy": {"acc_norm": 0.5, "acc_norm_stderr": 0.01}}}
     RunResult.model_validate(ev)
 
 
@@ -80,3 +80,46 @@ def test_file_helpers(tmp_path):
            "prompt_tokens": 100, "output_tokens": 50}
     (tmp_path / "q.jsonl").write_text(json.dumps(rec) + "\n")
     assert len(validate_request_file(tmp_path / "q.jsonl")) == 1
+
+
+def _eval_sample():
+    ev = copy.deepcopy(SAMPLE)
+    for k in ("workload", "concurrency", "throughput", "ttft_ms", "itl_ms", "e2e_ms"):
+        del ev[k]
+    ev["run_type"] = "eval"
+    ev["accuracy"] = {"task_metrics": {
+        "wikitext": {"word_perplexity": 20.0},
+        "arc_easy": {"acc_norm": 0.5, "acc": 0.55},
+    }}
+    return ev
+
+
+def test_multi_task_accuracy_ok():
+    RunResult.model_validate(_eval_sample())
+
+
+def test_eval_without_task_metrics_rejected():
+    ev = _eval_sample()
+    ev["accuracy"] = {}
+    with pytest.raises(ValidationError):
+        RunResult.model_validate(ev)
+
+
+def test_legacy_and_task_metrics_together_rejected():
+    ev = _eval_sample()
+    ev["accuracy"]["task_acc"] = 0.5
+    with pytest.raises(ValidationError):
+        RunResult.model_validate(ev)
+
+
+def test_wrong_metric_type_rejected():
+    ev = _eval_sample()
+    ev["accuracy"]["task_metrics"]["arc_easy"]["acc"] = "high"
+    with pytest.raises(ValidationError):
+        RunResult.model_validate(ev)
+
+
+def test_old_baseline_style_accuracy_still_valid():
+    b = copy.deepcopy(SAMPLE)
+    b["accuracy"] = {"wikitext_word_perplexity": None, "task_name": None, "task_acc": None}
+    RunResult.model_validate(b)

@@ -6,9 +6,9 @@ timestamps in seconds from benchmark start.
 """
 import json
 from pathlib import Path
-from typing import Dict, List, Literal, Optional
+from typing import Any, Dict, List, Literal, Optional
 
-from pydantic import BaseModel, ConfigDict, model_validator
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 
 class Strict(BaseModel):
@@ -41,9 +41,22 @@ class Throughput(Strict):
 
 
 class Accuracy(Strict):
+    # New results go ONLY into task_metrics: {task: {metric: value}}, e.g.
+    #   {"wikitext": {"word_perplexity": 20.1},
+    #    "arc_easy": {"acc_norm": 0.55, "acc_norm_stderr": 0.01}}
+    task_metrics: Dict[str, Dict[str, float]] = Field(default_factory=dict)
+
+    # Legacy single-task fields, kept so older result files still validate.
     wikitext_word_perplexity: Optional[float] = None
     task_name: Optional[str] = None
     task_acc: Optional[float] = None
+
+    @model_validator(mode="after")
+    def one_place_only(self):
+        legacy = (self.wikitext_word_perplexity, self.task_name, self.task_acc)
+        if self.task_metrics and any(v is not None for v in legacy):
+            raise ValueError("use either task_metrics or the legacy fields, not both")
+        return self
 
 
 class Environment(Strict):
@@ -70,11 +83,11 @@ class RunResult(Strict):
     # always present
     peak_gpu_memory_mb: float
     memory_measure_method: str  # e.g. "torch.cuda.max_memory_allocated"
-    accuracy: Accuracy = Accuracy()
+    accuracy: Accuracy = Field(default_factory=Accuracy)
     environment: Environment
     config: dict            # fully resolved config
     config_sha256: str
-    extra: dict = {}        # free-form run-specific numbers (e.g. weights_mb for the HF baseline)
+    extra: Dict[str, Any] = Field(default_factory=dict)  # free-form run-specific numbers
 
     @model_validator(mode="after")
     def benchmark_needs_latency(self):
@@ -82,6 +95,12 @@ class RunResult(Strict):
             for f in ("workload", "concurrency", "throughput", "ttft_ms", "itl_ms", "e2e_ms"):
                 if getattr(self, f) is None:
                     raise ValueError(f"benchmark run is missing '{f}'")
+        return self
+
+    @model_validator(mode="after")
+    def eval_needs_accuracy(self):
+        if self.run_type == "eval" and self.status == "ok" and not self.accuracy.task_metrics:
+            raise ValueError("eval run needs accuracy.task_metrics")
         return self
 
 

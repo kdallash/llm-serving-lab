@@ -1,0 +1,5 @@
+# Used by eval/run_eval.py on Kaggle. torch and transformers are preinstalled: do NOT reinstall them.
+# After the first successful run, pin exact versions (the result json records them).
+lm-eval
+pydantic>=2
+pyyaml
